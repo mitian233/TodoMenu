@@ -9,9 +9,13 @@ import SwiftUI
 
 @main
 struct TodoMenuApp: App {
+    @State private var appModel = AppModel()
+
     var body: some Scene {
-        WindowGroup {
-            ContentView()
+        MenuBarExtra("Todo", systemImage: "checkmark.circle.fill") {
+            MenuBarRootView()
+                .environmentObject(appModel.store)
         }
+        .menuBarExtraStyle(.window)
     }
 }
