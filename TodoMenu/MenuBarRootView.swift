@@ -29,10 +29,20 @@ struct MenuBarRootView: View {
             Divider()
 
             HStack {
-                Text("Today: \(store.incompleteCount) left")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .accessibilityIdentifier("taskCounter")
+                HStack(spacing: 0) {
+                    Text("Today: ")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    
+                    ScrollingNumberView(number: store.incompleteCount)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    
+                    Text(" left")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                .accessibilityIdentifier("taskCounter")
 
                 Spacer()
 
@@ -269,6 +279,51 @@ struct ShortcutTextField: NSViewRepresentable {
             default:
                 return false
             }
+        }
+    }
+}
+
+// MARK: - Scrolling Number View
+
+struct ScrollingNumberView: View {
+    let number: Int
+    
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(Array(String(number).enumerated()), id: \.offset) { _, char in
+                if let digit = char.wholeNumberValue {
+                    ScrollingDigitView(digit: digit)
+                } else {
+                    Text(String(char))
+                }
+            }
+        }
+    }
+}
+
+struct ScrollingDigitView: View {
+    let digit: Int
+    
+    @State private var animatedDigit: Int
+    
+    init(digit: Int) {
+        self.digit = digit
+        self._animatedDigit = State(initialValue: digit)
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(0...9, id: \.self) { num in
+                Text("\(num)")
+                    .frame(height: 14, alignment: .center)
+            }
+        }
+        .frame(height: 14, alignment: .top)
+        .offset(y: CGFloat(-animatedDigit) * 14)
+        .animation(.spring(response: 0.4, dampingFraction: 0.7, blendDuration: 0), value: animatedDigit)
+        .clipped()
+        .onChange(of: digit) { _, newValue in
+            animatedDigit = newValue
         }
     }
 }
