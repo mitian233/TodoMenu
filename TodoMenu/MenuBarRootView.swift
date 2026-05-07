@@ -32,6 +32,7 @@ struct MenuBarRootView: View {
                 Text("Today: \(store.incompleteCount) left")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("taskCounter")
 
                 Spacer()
 
@@ -50,11 +51,9 @@ struct TodoListView: View {
     @EnvironmentObject private var store: TodoStore
 
     var body: some View {
-        let items = store.visibleItems
-
         ScrollView {
             LazyVStack(spacing: 8) {
-                if items.isEmpty {
+                if store.items.isEmpty {
                     VStack(spacing: 6) {
                         Image(systemName: "checklist")
                             .font(.title2)
@@ -67,8 +66,9 @@ struct TodoListView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
+                    .accessibilityIdentifier("emptyState")
                 } else {
-                    ForEach(items) { item in
+                    ForEach(store.visibleItems) { item in
                         TodoRowView(item: item)
                     }
                 }
@@ -94,6 +94,7 @@ struct TodoRowView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(item.isDone ? "Mark as not done" : "Mark as done")
+            .accessibilityIdentifier("toggleButton")
 
             Text(item.title)
                 .strikethrough(item.isDone)
@@ -108,8 +109,10 @@ struct TodoRowView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Delete task")
+            .accessibilityIdentifier("deleteButton")
         }
         .padding(.vertical, 4)
+        .accessibilityIdentifier("taskRow_\(item.id)")
     }
 }
 
@@ -139,6 +142,7 @@ struct TaskComposerView: View {
                 onCancel: onClose
             )
             .frame(height: 28)
+            .accessibilityIdentifier("taskInputField")
 
             Text("Enter 保存 · ⌘+Enter 保存并关闭 · Esc 关闭")
                 .font(.caption)
