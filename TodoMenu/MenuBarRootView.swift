@@ -50,31 +50,43 @@ struct MenuBarRootView: View {
 struct TodoListView: View {
     @EnvironmentObject private var store: TodoStore
 
+    private var listHeight: CGFloat {
+        let rowHeight: CGFloat = 28
+        let rowSpacing: CGFloat = 8
+        let count = store.visibleItems.count
+        let contentHeight = (CGFloat(count) * rowHeight) + (CGFloat(max(count - 1, 0)) * rowSpacing)
+        return min(max(contentHeight, 44), 220)
+    }
+
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 8) {
-                if store.items.isEmpty {
-                    VStack(spacing: 6) {
-                        Image(systemName: "checklist")
-                            .font(.title2)
-                            .foregroundStyle(.secondary)
-                        Text("No tasks yet")
-                            .font(.subheadline)
-                        Text("Type one above and press Return.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .accessibilityIdentifier("emptyState")
-                } else {
-                    ForEach(store.visibleItems) { item in
-                        TodoRowView(item: item)
-                    }
+        Group {
+            if store.items.isEmpty {
+                VStack(spacing: 6) {
+                    Image(systemName: "checklist")
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
+                    Text("No tasks yet")
+                        .font(.subheadline)
+                    Text("Type one above and press Return.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
+                .frame(maxWidth: .infinity, minHeight: 72)
+                .padding(.vertical, 12)
+                .accessibilityIdentifier("emptyState")
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(store.visibleItems) { item in
+                            TodoRowView(item: item)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(height: listHeight)
             }
         }
-        .frame(maxHeight: 240)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
     }
 }
 
@@ -111,6 +123,7 @@ struct TodoRowView: View {
             .accessibilityLabel("Delete task")
             .accessibilityIdentifier("deleteButton")
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 4)
         .accessibilityIdentifier("taskRow_\(item.id)")
     }
