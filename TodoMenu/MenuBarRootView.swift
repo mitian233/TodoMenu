@@ -65,7 +65,7 @@ struct TodoListView: View {
         let rowSpacing: CGFloat = 8
         let count = store.visibleItems.count
         let contentHeight = (CGFloat(count) * rowHeight) + (CGFloat(max(count - 1, 0)) * rowSpacing)
-        return min(max(contentHeight, 44), 220)
+        return min(max(contentHeight, 72), 220)
     }
 
     var body: some View {
@@ -81,34 +81,43 @@ struct TodoListView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                .frame(maxWidth: .infinity, minHeight: 72)
-                .padding(.vertical, 12)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .accessibilityIdentifier("emptyState")
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(store.visibleItems) { item in
                             TodoRowView(item: item)
+                                .transition(.asymmetric(
+                                    insertion: .move(edge: .top).combined(with: .opacity),
+                                    removal: .move(edge: .leading).combined(with: .opacity)
+                                ))
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .animation(.spring(response: 0.35, dampingFraction: 0.75), value: store.visibleItems.count)
                 }
-                .frame(height: listHeight)
             }
         }
+        .frame(height: listHeight, alignment: .top)
+        .animation(.easeOut(duration: 0.25), value: listHeight)
         .frame(maxWidth: .infinity, alignment: .topLeading)
     }
 }
 
 struct TodoRowView: View {
     @EnvironmentObject private var store: TodoStore
-
+    
     let item: TodoItem
-
+    
+    @State private var isStrikethroughVisible = false
+    
     var body: some View {
         HStack(spacing: 8) {
             Button {
-                store.toggle(item)
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    store.toggle(item)
+                }
             } label: {
                 Image(systemName: item.isDone ? "checkmark.circle.fill" : "circle")
                     .imageScale(.medium)
@@ -117,15 +126,25 @@ struct TodoRowView: View {
             .buttonStyle(.plain)
             .accessibilityLabel(item.isDone ? "Mark as not done" : "Mark as done")
             .accessibilityIdentifier("toggleButton")
-
-            Text(item.title)
-                .strikethrough(item.isDone)
-                .foregroundStyle(item.isDone ? .secondary : .primary)
-                .lineLimit(1)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
+            
+            ZStack(alignment: .leading) {
+                Text(item.title)
+                    .foregroundStyle(item.isDone ? .secondary : .primary)
+                    .lineLimit(1)
+                
+                // Animated strikethrough
+                Rectangle()
+                    .fill(.secondary)
+                    .frame(height: 1)
+                    .frame(maxWidth: isStrikethroughVisible ? .infinity : 0)
+                    .animation(.easeOut(duration: 0.25), value: isStrikethroughVisible)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            
             Button(role: .destructive) {
-                store.delete(item)
+                withAnimation(.easeOut(duration: 0.2)) {
+                    store.delete(item)
+                }
             } label: {
                 Image(systemName: "trash")
             }
@@ -136,6 +155,12 @@ struct TodoRowView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 4)
         .accessibilityIdentifier("taskRow_\(item.id)")
+        .onAppear {
+            isStrikethroughVisible = item.isDone
+        }
+        .onChange(of: item.isDone) { _, newValue in
+            isStrikethroughVisible = newValue
+        }
     }
 }
 
@@ -167,7 +192,7 @@ struct TaskComposerView: View {
             .frame(height: 28)
             .accessibilityIdentifier("taskInputField")
 
-            Text("Enter 保存 · ⌘+Enter 保存并关闭 · Esc 关闭")
+            Text("Enter to Save · ⌘+Enter to Save & Close · Esc to Close")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
