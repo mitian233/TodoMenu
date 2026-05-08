@@ -361,7 +361,7 @@ struct AnimatedRollingNumberView: View {
     var digitHeight: CGFloat = 14
     var hidesWhenZero: Bool = false
 
-    private var isVisible: Bool {
+    var isVisible: Bool {
         !hidesWhenZero || number != 0
     }
 

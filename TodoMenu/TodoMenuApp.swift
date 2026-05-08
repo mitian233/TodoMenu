@@ -9,48 +9,36 @@ import SwiftUI
 
 @main
 struct TodoMenuApp: App {
-    @State private var appModel = AppModel()
+    @StateObject private var appModel = AppModel()
 
     var body: some Scene {
         MenuBarExtra {
             MenuBarRootView()
                 .environmentObject(appModel.store)
         } label: {
-            MenuBarExtraLabelView(store: appModel.store)
+            MenuBarCounterLabel(store: appModel.store)
         }
         .menuBarExtraStyle(.window)
     }
 }
 
 @MainActor
-private struct MenuBarExtraLabelView: View {
+private struct MenuBarCounterLabel: View {
     @ObservedObject var store: TodoStore
 
-    private var remainingCount: Int {
-        store.incompleteCount
-    }
-
     var body: some View {
+        let count = store.incompleteCount
         HStack(spacing: 4) {
-            Image(systemName: remainingCount == 0 ? "checkmark.circle.fill" : "circle")
+            Image(systemName: count == 0 ? "checkmark.circle.fill" : "circle")
                 .imageScale(.medium)
 
-            AnimatedRollingNumberView(
-                number: remainingCount,
-                digitHeight: 14,
-                hidesWhenZero: true
-            )
-            .font(.system(size: 12, weight: .semibold, design: .rounded))
-            .monospacedDigit()
+            if count > 0 {
+                Text("\(count)")
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .monospacedDigit()
+            }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(accessibilityLabel)
-    }
-
-    private var accessibilityLabel: String {
-        if remainingCount == 0 {
-            return "Todo. No remaining tasks."
-        }
-        return "Todo. \(remainingCount) tasks remaining."
+        .accessibilityLabel(count == 0 ? "Todo. No remaining tasks." : "Todo. \(count) tasks remaining.")
     }
 }

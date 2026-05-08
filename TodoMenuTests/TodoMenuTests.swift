@@ -49,38 +49,31 @@ struct TodoMenuTests {
     @MainActor
     @Test
     func visibleItemsReflectsChanges() throws {
-        // Test that visibleItems properly updates when items change
         let suiteName = "TodoMenuTests.\(UUID().uuidString)"
         let defaults = try #require(UserDefaults(suiteName: suiteName))
         defaults.removePersistentDomain(forName: suiteName)
 
         let store = TodoStore(defaults: defaults)
         
-        // Initially empty
         #expect(store.visibleItems.isEmpty)
         #expect(store.items.isEmpty)
         
-        // Add first item
         let task1 = try #require(store.add(title: "Task 1"))
         #expect(store.visibleItems.count == 1)
         #expect(store.visibleItems.first?.id == task1.id)
         
-        // Add second item
         let task2 = try #require(store.add(title: "Task 2"))
         #expect(store.visibleItems.count == 2)
         
-        // Toggle first item - should appear at end
         store.toggle(task1)
         #expect(store.visibleItems.count == 2)
-        #expect(store.visibleItems.first?.id == task2.id) // Incomplete first
-        #expect(store.visibleItems.last?.id == task1.id) // Completed last
+        #expect(store.visibleItems.first?.id == task2.id)
+        #expect(store.visibleItems.last?.id == task1.id)
         
-        // Delete first item
         store.delete(task1)
         #expect(store.visibleItems.count == 1)
         #expect(store.visibleItems.first?.id == task2.id)
         
-        // Delete remaining item
         store.delete(task2)
         #expect(store.visibleItems.isEmpty)
     }
@@ -94,29 +87,23 @@ struct TodoMenuTests {
 
         let store = TodoStore(defaults: defaults)
         
-        // Initially 0
         #expect(store.incompleteCount == 0)
         
-        // Add items
         let task1 = try #require(store.add(title: "Task 1"))
         #expect(store.incompleteCount == 1)
         
         let task2 = try #require(store.add(title: "Task 2"))
         #expect(store.incompleteCount == 2)
         
-        // Toggle one
         store.toggle(task1)
         #expect(store.incompleteCount == 1)
         
-        // Toggle back
         store.toggle(task1)
         #expect(store.incompleteCount == 2)
         
-        // Delete one
         store.delete(task1)
         #expect(store.incompleteCount == 1)
         
-        // Toggle remaining
         store.toggle(task2)
         #expect(store.incompleteCount == 0)
     }
@@ -130,16 +117,69 @@ struct TodoMenuTests {
 
         let store = TodoStore(defaults: defaults)
         
-        // Empty string
         #expect(store.add(title: "") == nil)
         #expect(store.items.isEmpty)
         
-        // Whitespace only
         #expect(store.add(title: "   ") == nil)
         #expect(store.items.isEmpty)
         
-        // Newlines only
         #expect(store.add(title: "\n\n") == nil)
         #expect(store.items.isEmpty)
+    }
+    
+    @MainActor
+    @Test
+    func incompleteCountReflectsMultipleTasks() throws {
+        let suiteName = "TodoMenuTests.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defaults.removePersistentDomain(forName: suiteName)
+
+        let store = TodoStore(defaults: defaults)
+        
+        #expect(store.incompleteCount == 0)
+        
+        let task1 = try #require(store.add(title: "Task 1"))
+        #expect(store.incompleteCount == 1)
+        
+        let task2 = try #require(store.add(title: "Task 2"))
+        #expect(store.incompleteCount == 2)
+        
+        let task3 = try #require(store.add(title: "Task 3"))
+        #expect(store.incompleteCount == 3)
+        
+        store.toggle(task2)
+        #expect(store.incompleteCount == 2)
+        
+        store.toggle(task1)
+        #expect(store.incompleteCount == 1)
+        
+        store.toggle(task1)
+        #expect(store.incompleteCount == 2)
+    }
+    
+    @MainActor
+    @Test
+    func animatedRollingNumberViewVisibility() throws {
+        let view1 = AnimatedRollingNumberView(number: 0, hidesWhenZero: false)
+        #expect(view1.isVisible == true)
+        
+        let view2 = AnimatedRollingNumberView(number: 5, hidesWhenZero: false)
+        #expect(view2.isVisible == true)
+        
+        let view3 = AnimatedRollingNumberView(number: 0, hidesWhenZero: true)
+        #expect(view3.isVisible == false)
+        
+        let view4 = AnimatedRollingNumberView(number: 5, hidesWhenZero: true)
+        #expect(view4.isVisible == true)
+    }
+    
+    @MainActor
+    @Test
+    func animatedRollingNumberViewDigitHeight() throws {
+        let view1 = AnimatedRollingNumberView(number: 5)
+        #expect(view1.digitHeight == 14)
+        
+        let view2 = AnimatedRollingNumberView(number: 5, digitHeight: 20)
+        #expect(view2.digitHeight == 20)
     }
 }
