@@ -35,11 +35,13 @@ private struct MenuBarExtraLabelView: View {
             Image(systemName: remainingCount == 0 ? "checkmark.circle.fill" : "circle")
                 .imageScale(.medium)
 
-            if remainingCount != 0 {
-                Text("\(remainingCount)")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .monospacedDigit()
-            }
+            AnimatedRollingNumberView(
+                number: remainingCount,
+                digitHeight: 14,
+                hidesWhenZero: true
+            )
+            .font(.system(size: 12, weight: .semibold, design: .rounded))
+            .monospacedDigit()
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabel)
