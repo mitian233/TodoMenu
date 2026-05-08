@@ -110,8 +110,6 @@ struct TodoRowView: View {
     
     let item: TodoItem
     
-    @State private var isStrikethroughVisible = false
-    
     var body: some View {
         HStack(spacing: 8) {
             Button {
@@ -127,18 +125,10 @@ struct TodoRowView: View {
             .accessibilityLabel(item.isDone ? "Mark as not done" : "Mark as done")
             .accessibilityIdentifier("toggleButton")
             
-            ZStack(alignment: .leading) {
-                Text(item.title)
-                    .foregroundStyle(item.isDone ? .secondary : .primary)
-                    .lineLimit(1)
-                
-                // Animated strikethrough
-                Rectangle()
-                    .fill(.secondary)
-                    .frame(height: 1)
-                    .frame(maxWidth: isStrikethroughVisible ? .infinity : 0)
-                    .animation(.easeOut(duration: 0.25), value: isStrikethroughVisible)
-            }
+            Text(item.title)
+                .foregroundStyle(item.isDone ? .secondary : .primary)
+                .lineLimit(1)
+                .strikethrough(item.isDone, color: .secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
             
             Button(role: .destructive) {
@@ -155,12 +145,6 @@ struct TodoRowView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 4)
         .accessibilityIdentifier("taskRow_\(item.id)")
-        .onAppear {
-            isStrikethroughVisible = item.isDone
-        }
-        .onChange(of: item.isDone) { _, newValue in
-            isStrikethroughVisible = newValue
-        }
     }
 }
 
