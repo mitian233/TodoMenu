@@ -22,6 +22,7 @@ struct TodoMenuApp: App {
     }
 }
 
+@MainActor
 private struct MenuBarExtraLabelView: View {
     @ObservedObject var store: TodoStore
 
