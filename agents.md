@@ -1,6 +1,6 @@
 # TodoMenu 项目说明
 
-这是一个 macOS 菜单栏待办工具，目标是把“想到任务，立刻记下”这件事做到最省步骤。
+这是一个 macOS 菜单栏待办工具，目标是把"想到任务，立刻记下"这件事做到最省步骤。
 
 ## 目标
 
@@ -41,7 +41,20 @@
 - 涉及快捷键、窗口、App 启动行为时，优先做最稳的实现
 - 不要因为局部方便引入会让菜单栏工具变重的结构
 
+## Git 提交规范
+
+- 使用用户默认 git 身份作为 Author 和 Committer
+- 将 `openai-code-agent[bot]` 作为 Co-Authored-By
+- 提交消息以 `[bot]` 开头
+
+```bash
+git add .
+git commit -m "[bot] your message
+
+Co-Authored-By: openai-code-agent[bot] <242516109+Codex@users.noreply.github.com>"
+```
+
 ## 备注
 
 - 这个项目的重点不是功能数量，而是打开成本和输入速度。
-- 如果改动会影响“1 秒记下来”这个目标，应该优先调整设计，而不是继续堆功能。
+- 如果改动会影响"1 秒记下来"这个目标，应该优先调整设计，而不是继续堆功能。
