@@ -12,7 +12,7 @@ struct TodoMenuApp: App {
     @State private var appModel = AppModel()
 
     var body: some Scene {
-        MenuBarExtra("Todo") {
+        MenuBarExtra {
             MenuBarRootView()
                 .environmentObject(appModel.store)
         } label: {
