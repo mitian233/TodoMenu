@@ -95,7 +95,7 @@ final class TodoStore: ObservableObject {
 }
 
 @MainActor
-final class AppModel {
+final class AppModel: ObservableObject {
     let store = TodoStore()
     let hotKeyManager = HotKeyManager()
     lazy var quickAddWindowController = QuickAddWindowController(store: store)
