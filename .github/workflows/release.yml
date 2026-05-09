@@ -38,7 +38,11 @@ jobs:
       - name: Create DMG
         run: |
           cd build/Build/Products/Release
-          hdiutil create -volname "TodoMenu" -srcfolder TodoMenu.app -ov -format UDZO TodoMenu-${{ matrix.arch }}.dmg
+          mkdir -p dmg_temp
+          cp -R TodoMenu.app dmg_temp/
+          ln -s /Applications dmg_temp/Applications
+          hdiutil create -volname "TodoMenu" -srcfolder dmg_temp -ov -format UDZO TodoMenu-${{ matrix.arch }}.dmg
+          rm -rf dmg_temp
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
