@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import WindowAnimation
 
 struct MenuBarRootView: View {
     @EnvironmentObject private var store: TodoStore
@@ -54,6 +55,7 @@ struct MenuBarRootView: View {
         }
         .padding(12)
         .frame(width: 340)
+        .modifier(WindowAnimationModifier(alignment: .top))
     }
 }
 
@@ -100,7 +102,6 @@ struct TodoListView: View {
             }
         }
         .frame(height: listHeight, alignment: .top)
-        .animation(.easeOut(duration: 0.25), value: listHeight)
         .frame(maxWidth: .infinity, alignment: .topLeading)
     }
 }
