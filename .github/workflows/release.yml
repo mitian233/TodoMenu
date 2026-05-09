@@ -30,8 +30,9 @@ jobs:
         run: |
           xcodebuild build \
             -scheme TodoMenu \
-            -destination 'generic/platform=macOS,arch=${{ matrix.arch }}' \
+            -destination 'platform=macOS' \
             -configuration Release \
+            ARCHS=${{ matrix.arch }} \
             -derivedDataPath build
 
       - name: Create DMG
