@@ -12,10 +12,14 @@ struct MenuBarRootView: View {
                 title: "Add a task",
                 placeholder: "What should not be forgotten?",
                 onSubmit: { title in
-                    store.add(title: title)
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        _ = store.add(title: title)
+                    }
                 },
                 onSubmitAndClose: { title in
-                    store.add(title: title)
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        _ = store.add(title: title)
+                    }
                     dismiss()
                 },
                 onClose: {
@@ -102,6 +106,7 @@ struct TodoListView: View {
             }
         }
         .frame(height: listHeight, alignment: .top)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: listHeight)
         .frame(maxWidth: .infinity, alignment: .topLeading)
     }
 }
