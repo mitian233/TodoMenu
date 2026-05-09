@@ -112,7 +112,6 @@
 			);
 			name = TodoMenu;
 			packageProductDependencies = (
-				A1C2D3E4F5A6B7C8D9E0F1A3 /* WindowAnimation */,
 			);
 			productName = TodoMenu;
 			productReference = F500E7632FACCE3D0051A9D9 /* TodoMenu.app */;
@@ -196,9 +195,6 @@
 			);
 			mainGroup = F500E75A2FACCE3D0051A9D9;
 			minimizedProjectReferenceProxies = 1;
-			packageReferences = (
-				A1C2D3E4F5A6B7C8D9E0F1A2 /* XCRemoteSwiftPackageReference "WindowAnimation" */,
-			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F500E7642FACCE3D0051A9D9 /* Products */;
 			projectDirPath = "";
@@ -570,24 +566,6 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		A1C2D3E4F5A6B7C8D9E0F1A2 /* XCRemoteSwiftPackageReference "WindowAnimation" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Lakr233/WindowAnimation";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		A1C2D3E4F5A6B7C8D9E0F1A3 /* WindowAnimation */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A1C2D3E4F5A6B7C8D9E0F1A2 /* XCRemoteSwiftPackageReference "WindowAnimation" */;
-			productName = WindowAnimation;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = F500E75B2FACCE3D0051A9D9 /* Project object */;
 }
