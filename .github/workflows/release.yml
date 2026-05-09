@@ -30,8 +30,7 @@ jobs:
         run: |
           xcodebuild build \
             -scheme TodoMenu \
-            -destination 'platform=macOS' \
-            -arch ${{ matrix.arch }} \
+            -destination 'generic/platform=macOS,arch=${{ matrix.arch }}' \
             -configuration Release \
             -derivedDataPath build
 
