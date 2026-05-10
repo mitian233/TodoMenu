@@ -49,6 +49,11 @@ struct MenuBarRootView: View {
                 .accessibilityIdentifier("taskCounter")
 
                 Spacer()
+                
+                SettingsLink {
+                    Text("Settings")
+                }
+                .buttonStyle(.borderless)
 
                 Button("Quit") {
                     NSApp.terminate(nil)

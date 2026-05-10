@@ -19,6 +19,10 @@ struct TodoMenuApp: App {
             MenuBarCounterLabel(store: appModel.store)
         }
         .menuBarExtraStyle(.window)
+        
+        Settings {
+            SettingsView()
+        }
     }
 }
 
