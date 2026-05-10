@@ -1,6 +1,6 @@
 # TodoMenu Project Overview
 
-TodoMenu is a macOS menu bar to-do app. Its goal is to make “capture a task the moment it comes to mind” take as few steps as possible.
+TodoMenu is a macOS menu bar to-do app. Its goal is to make "capture a task the moment it comes to mind" take as few steps as possible.
 
 ## Goals
 
@@ -44,4 +44,14 @@ After making changes, confirm at least the following two items:
 ## Notes
 
 - The focus of this project is not the number of features, but the low cost of opening the app and the speed of entering tasks.
-- If a change affects the goal of “capture it in one second,” adjust the design first instead of continuing to pile on features.
+- If a change affects the goal of "capture it in one second," adjust the design first instead of continuing to pile on features.
+
+## Credits
+
+The notch display mode in this project references and adapts code from [NotchDrop](https://github.com/Lakr233/NotchDrop) by [Lakr233](https://github.com/Lakr233). NotchDrop transforms the MacBook notch into a file drop zone, and its notch window architecture — including the mask-based shape drawing, event monitoring, and animation system — served as the foundation for our notch implementation.
+
+Special thanks to the NotchDrop project for making its source code publicly available.
+
+## LICENSE
+
+MIT
