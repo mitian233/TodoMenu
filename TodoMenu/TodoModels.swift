@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import Cocoa
 
 struct TodoItem: Identifiable, Codable, Equatable {
     let id: UUID
@@ -89,21 +90,6 @@ final class TodoStore: ObservableObject {
             let data = try JSONEncoder().encode(items)
             defaults.set(data, forKey: storageKey)
         } catch {
-            // Ignore persistence failures for the MVP.
         }
-    }
-}
-
-@MainActor
-final class AppModel: ObservableObject {
-    let store = TodoStore()
-    let hotKeyManager = HotKeyManager()
-    lazy var quickAddWindowController = QuickAddWindowController(store: store)
-
-    init() {
-        hotKeyManager.onTrigger = { [weak self] in
-            self?.quickAddWindowController.show()
-        }
-        hotKeyManager.start()
     }
 }
