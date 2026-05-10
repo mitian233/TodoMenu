@@ -15,9 +15,14 @@ struct NotchTodoView: View {
                     .font(.headline)
                 Spacer()
                 HStack(spacing: 8) {
-                    Text("\(store.incompleteCount) left")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    HStack(spacing: 0) {
+                        AnimatedRollingNumberView(number: store.incompleteCount, digitHeight: 12)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(" left")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                     Menu {
                         Button("Settings") { openSettings() }
                         Divider()
@@ -59,14 +64,8 @@ struct NotchTodoView: View {
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 6) {
-                        ForEach(store.visibleItems.prefix(5)) { item in
+                        ForEach(store.visibleItems) { item in
                             NotchTodoRowView(item: item, store: store)
-                        }
-                        if store.visibleItems.count > 5 {
-                            Text("+\(store.visibleItems.count - 5) more")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .frame(maxWidth: .infinity, alignment: .center)
                         }
                     }
                 }
