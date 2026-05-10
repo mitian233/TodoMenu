@@ -4,6 +4,7 @@ import SwiftUI
 struct MenuBarRootView: View {
     @EnvironmentObject private var store: TodoStore
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -50,10 +51,8 @@ struct MenuBarRootView: View {
 
                 Spacer()
                 
-                SettingsLink {
-                    Text("Settings")
-                }
-                .buttonStyle(.borderless)
+                Button("Settings") { openSettings() }
+                    .buttonStyle(.borderless)
 
                 Button("Quit") {
                     NSApp.terminate(nil)

@@ -56,7 +56,7 @@ class StatusBarController {
         if let button = statusItem.button {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         }
-        eventMonitor = EventMonitor(mask: .leftMouseDown) { [weak self] _ in
+        eventMonitor = EventMonitor(mask: .leftMouseDown, useLocalMonitor: false) { [weak self] _ in
             Task { @MainActor in
                 self?.closePopover()
             }
