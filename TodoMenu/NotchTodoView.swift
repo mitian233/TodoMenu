@@ -3,6 +3,7 @@ import SwiftUI
 struct NotchTodoView: View {
     @ObservedObject var store: TodoStore
     let onClose: () -> Void
+    @Environment(\.openSettings) private var openSettings
 
     @State private var draft = ""
     @FocusState private var isInputFocused
@@ -13,10 +14,21 @@ struct NotchTodoView: View {
                 Text("TodoMenu")
                     .font(.headline)
                 Spacer()
-                HStack(spacing: 12) {
+                HStack(spacing: 8) {
                     Text("\(store.incompleteCount) left")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                    Menu {
+                        Button("Settings") { openSettings() }
+                        Divider()
+                        Button("Quit TodoMenu") { NSApp.terminate(nil) }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .foregroundStyle(.secondary)
+                    }
+                    .menuStyle(.borderlessButton)
+                    .menuIndicator(.hidden)
+                    .frame(width: 20)
                     Button {
                         onClose()
                     } label: {
@@ -58,22 +70,6 @@ struct NotchTodoView: View {
                         }
                     }
                 }
-            }
-
-            HStack {
-                SettingsLink {
-                    Text("Settings")
-                }
-                .buttonStyle(.borderless)
-                .font(.caption)
-
-                Spacer()
-
-                Button("Quit") {
-                    NSApp.terminate(nil)
-                }
-                .buttonStyle(.borderless)
-                .font(.caption)
             }
         }
         .onAppear {

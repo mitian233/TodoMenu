@@ -4,6 +4,8 @@ struct NotchView: View {
     @StateObject var viewModel: NotchViewModel
     @ObservedObject var store: TodoStore
 
+    @State var dropTargeting: Bool = false
+
     var notchSize: CGSize {
         switch viewModel.status {
         case .closed:
@@ -24,46 +26,103 @@ struct NotchView: View {
         }
     }
 
-    var cornerRadius: CGFloat {
+    var notchCornerRadius: CGFloat {
         switch viewModel.status {
         case .closed: return 8
-        case .opened: return 24
+        case .opened: return 32
         case .popping: return 10
         }
     }
 
     var body: some View {
         ZStack(alignment: .top) {
-            notchBackground
+            notch
                 .zIndex(0)
+                .disabled(true)
+                .opacity(viewModel.notchVisible ? 1 : 0.3)
 
-            if viewModel.status == .opened {
-                NotchTodoView(store: store, onClose: { viewModel.notchClose() })
-                    .padding(16)
-                    .frame(maxWidth: viewModel.notchOpenedSize.width, maxHeight: viewModel.notchOpenedSize.height)
-                    .zIndex(1)
-                    .transition(.scale.combined(with: .opacity))
+            Group {
+                if viewModel.status == .opened {
+                    NotchTodoView(store: store, onClose: { viewModel.notchClose() })
+                        .padding(viewModel.spacing)
+                        .frame(maxWidth: viewModel.notchOpenedSize.width, maxHeight: viewModel.notchOpenedSize.height)
+                        .zIndex(1)
+                }
             }
+            .transition(
+                .scale.combined(
+                    with: .opacity
+                ).combined(
+                    with: .offset(y: -viewModel.notchOpenedSize.height / 2)
+                ).animation(viewModel.animation)
+            )
         }
+        // TODO: add dragDetector for file drop support
         .animation(viewModel.animation, value: viewModel.status)
         .preferredColorScheme(.dark)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
-    var notchBackground: some View {
+    var notch: some View {
+        Rectangle()
+            .foregroundStyle(.black)
+            .mask(notchBackgroundMaskGroup)
+            .frame(
+                width: notchSize.width + notchCornerRadius * 2,
+                height: notchSize.height
+            )
+            .shadow(
+                color: .black.opacity(([.opened, .popping].contains(viewModel.status)) ? 1 : 0),
+                radius: 16
+            )
+    }
+
+    var notchBackgroundMaskGroup: some View {
         Rectangle()
             .foregroundStyle(.black)
             .frame(
-                width: notchSize.width + cornerRadius * 2,
+                width: notchSize.width,
                 height: notchSize.height
             )
             .clipShape(.rect(
-                bottomLeadingRadius: cornerRadius,
-                bottomTrailingRadius: cornerRadius
+                bottomLeadingRadius: notchCornerRadius,
+                bottomTrailingRadius: notchCornerRadius
             ))
-            .shadow(
-                color: viewModel.status == .opened ? .black.opacity(0.5) : .clear,
-                radius: 16
-            )
+            .overlay {
+                ZStack(alignment: .topTrailing) {
+                    Rectangle()
+                        .frame(width: notchCornerRadius, height: notchCornerRadius)
+                        .foregroundStyle(.black)
+                    Rectangle()
+                        .clipShape(.rect(topTrailingRadius: notchCornerRadius))
+                        .foregroundStyle(.white)
+                        .frame(
+                            width: notchCornerRadius + viewModel.spacing,
+                            height: notchCornerRadius + viewModel.spacing
+                        )
+                        .blendMode(.destinationOut)
+                }
+                .compositingGroup()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .offset(x: -notchCornerRadius - viewModel.spacing + 0.5, y: -0.5)
+            }
+            .overlay {
+                ZStack(alignment: .topLeading) {
+                    Rectangle()
+                        .frame(width: notchCornerRadius, height: notchCornerRadius)
+                        .foregroundStyle(.black)
+                    Rectangle()
+                        .clipShape(.rect(topLeadingRadius: notchCornerRadius))
+                        .foregroundStyle(.white)
+                        .frame(
+                            width: notchCornerRadius + viewModel.spacing,
+                            height: notchCornerRadius + viewModel.spacing
+                        )
+                        .blendMode(.destinationOut)
+                }
+                .compositingGroup()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                .offset(x: notchCornerRadius + viewModel.spacing - 0.5, y: -0.5)
+            }
     }
 }

@@ -20,6 +20,13 @@ class NotchViewModel: ObservableObject {
         case popping
     }
 
+    enum OpenReason: String, Codable, Hashable, Equatable {
+        case click
+        case drag
+        case boot
+        case unknown
+    }
+
     var notchOpenedRect: CGRect {
         CGRect(
             x: screenRect.origin.x + (screenRect.width - notchOpenedSize.width) / 2,
@@ -29,69 +36,125 @@ class NotchViewModel: ObservableObject {
         )
     }
 
-    @Published private(set) var status: Status = .closed
+    var headlineOpenedRect: CGRect {
+        CGRect(
+            x: screenRect.origin.x + (screenRect.width - notchOpenedSize.width) / 2,
+            y: screenRect.origin.y + screenRect.height - deviceNotchRect.height,
+            width: notchOpenedSize.width,
+            height: deviceNotchRect.height
+        )
+    }
+
+    @Published var status: Status = .closed
+    @Published var openReason: OpenReason = .unknown
     @Published var deviceNotchRect: CGRect = .zero
     @Published var screenRect: CGRect = .zero
+    @Published var spacing: CGFloat = 16
+    @Published var notchVisible: Bool = true
+    @Published var hapticFeedback: Bool = true
+    @Published var optionKeyPressed: Bool = false
 
-    private var mouseMoveMonitor: EventMonitor?
-    private var mouseDownMonitor: EventMonitor?
+    let hapticSender = PassthroughSubject<Void, Never>()
 
-    func notchOpen() {
+    init() {
+        setupCancellables()
+    }
+
+    func notchOpen(_ reason: OpenReason = .click) {
+        openReason = reason
         status = .opened
         NSApp.activate(ignoringOtherApps: true)
     }
 
     func notchClose() {
+        openReason = .unknown
         status = .closed
     }
 
     func notchPop() {
+        openReason = .unknown
         status = .popping
     }
 
-    func setupEventMonitors() {
-        mouseMoveMonitor = EventMonitor(mask: .mouseMoved) { [weak self] _ in
-            Task { @MainActor in
+    func setupCancellables() {
+        let events = EventMonitors.shared
+
+        events.mouseDown
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
                 guard let self else { return }
                 let mouseLocation = NSEvent.mouseLocation
-                let inNotch = self.deviceNotchRect.insetBy(dx: -4, dy: -4).contains(mouseLocation)
-
-                if self.status == .closed, inNotch {
-                    self.notchPop()
-                } else if self.status == .popping, !inNotch {
-                    self.notchClose()
-                }
-            }
-        }
-        mouseMoveMonitor?.start()
-
-        mouseDownMonitor = EventMonitor(mask: .leftMouseDown) { [weak self] _ in
-            Task { @MainActor in
-                guard let self else { return }
-                let mouseLocation = NSEvent.mouseLocation
-
-                switch self.status {
+                switch status {
                 case .opened:
-                    if !self.notchOpenedRect.contains(mouseLocation) {
-                        self.notchClose()
-                    } else if self.deviceNotchRect.insetBy(dx: -4, dy: -4).contains(mouseLocation) {
-                        self.notchClose()
+                    if !notchOpenedRect.contains(mouseLocation) {
+                        notchClose()
+                    } else if deviceNotchRect.insetBy(dx: -4, dy: -4).contains(mouseLocation) {
+                        notchClose()
+                    } else if headlineOpenedRect.contains(mouseLocation) {
+                        // TODO: toggle content type when header views are implemented
                     }
                 case .closed, .popping:
-                    if self.deviceNotchRect.insetBy(dx: -4, dy: -4).contains(mouseLocation) {
-                        self.notchOpen()
+                    if deviceNotchRect.insetBy(dx: -4, dy: -4).contains(mouseLocation) {
+                        notchOpen(.click)
                     }
                 }
             }
-        }
-        mouseDownMonitor?.start()
+            .store(in: &cancellables)
+
+        // TODO: subscribe to events.optionKeyPress when option key handling is needed
+
+        events.mouseLocation
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self else { return }
+                let mouseLocation = NSEvent.mouseLocation
+                let aboutToOpen = deviceNotchRect.insetBy(dx: -4, dy: -4).contains(mouseLocation)
+                if status == .closed, aboutToOpen { notchPop() }
+                if status == .popping, !aboutToOpen { notchClose() }
+            }
+            .store(in: &cancellables)
+
+        $status
+            .filter { $0 != .closed }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                withAnimation { self?.notchVisible = true }
+            }
+            .store(in: &cancellables)
+
+        $status
+            .filter { $0 == .popping }
+            .throttle(for: .seconds(0.5), scheduler: DispatchQueue.main, latest: false)
+            .sink { [weak self] _ in
+                guard NSEvent.pressedMouseButtons == 0 else { return }
+                self?.hapticSender.send()
+            }
+            .store(in: &cancellables)
+
+        hapticSender
+            .throttle(for: .seconds(0.5), scheduler: DispatchQueue.main, latest: false)
+            .sink { [weak self] _ in
+                guard self?.hapticFeedback ?? false else { return }
+                NSHapticFeedbackManager.defaultPerformer.perform(
+                    .levelChange,
+                    performanceTime: .now
+                )
+            }
+            .store(in: &cancellables)
+
+        $status
+            .debounce(for: 0.5, scheduler: DispatchQueue.global())
+            .filter { $0 == .closed }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                withAnimation {
+                    self?.notchVisible = false
+                }
+            }
+            .store(in: &cancellables)
     }
 
     func destroy() {
-        mouseMoveMonitor?.stop()
-        mouseDownMonitor?.stop()
-        mouseMoveMonitor = nil
-        mouseDownMonitor = nil
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
     }

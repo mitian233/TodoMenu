@@ -26,7 +26,7 @@ class NotchWindow: NSWindow {
             .canJoinAllSpaces,
             .ignoresCycle,
         ]
-        level = .statusBar + 1
+        level = .statusBar + 8
         hasShadow = false
     }
 

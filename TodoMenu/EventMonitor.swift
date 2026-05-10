@@ -1,7 +1,8 @@
 import Cocoa
 
 class EventMonitor {
-    private var monitor: Any?
+    private var globalMonitor: AnyObject?
+    private var localMonitor: AnyObject?
     private let mask: NSEvent.EventTypeMask
     private let handler: (NSEvent?) -> Void
 
@@ -10,18 +11,20 @@ class EventMonitor {
         self.handler = handler
     }
 
-    deinit {
-        stop()
-    }
+    deinit { stop() }
 
     func start() {
-        monitor = NSEvent.addGlobalMonitorForEvents(matching: mask, handler: handler)
+        globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: mask, handler: handler) as AnyObject?
+        localMonitor = NSEvent.addLocalMonitorForEvents(matching: mask) { [weak self] event in
+            self?.handler(event)
+            return event
+        } as AnyObject?
     }
 
     func stop() {
-        if let monitor = monitor {
-            NSEvent.removeMonitor(monitor)
-            self.monitor = nil
-        }
+        if let globalMonitor { NSEvent.removeMonitor(globalMonitor) }
+        globalMonitor = nil
+        if let localMonitor { NSEvent.removeMonitor(localMonitor) }
+        localMonitor = nil
     }
 }
