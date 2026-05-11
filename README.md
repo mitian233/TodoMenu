@@ -1,57 +1,93 @@
-# TodoMenu Project Overview
+# TodoMenu
 
-TodoMenu is a macOS menu bar to-do app. Its goal is to make "capture a task the moment it comes to mind" take as few steps as possible.
+A macOS menu bar to-do app — designed to capture tasks the moment they come to mind.
 
-## Goals
+Press `⌥ Space` to bring up a quick input window, type your task, and it's saved locally instantly. Lives in the menu bar with no Dock icon, zero friction task capture.
 
-- Stay resident in the menu bar
-- Use the global shortcut `⌥ Space` to open quick input
-- Save tasks locally immediately after input
-- Allow tasks to be marked as completed or deleted
-- Do not show a Dock icon
+## Features
 
-## Current Implementation Conventions
+- Sits in the macOS menu bar
+- Global shortcut `⌥ Space` for quick input
+- Tasks saved locally on input
+- Mark tasks as completed or deleted
+- Notch display mode (MacBook notch adaptation)
+- Launch at login
+- Dark / Light mode support
 
-- Use SwiftUI for the main interface
-- Use `MenuBarExtra` as the menu bar entry point
-- Use `UserDefaults` for local storage
-- The shortcut and quick input window are an independent flow, and must not depend on the foreground app state
-- Keep the MVP simple for now: no accounts, cloud sync, multi-device sync, project management, recurring tasks, or calendar integration
+## Quick Start
 
-## Important Files
+### Requirements
 
-- [TodoMenu/TodoMenuApp.swift](TodoMenu/TodoMenuApp.swift)
-- [TodoMenu/MenuBarRootView.swift](TodoMenu/MenuBarRootView.swift)
-- [TodoMenu/QuickAddWindowController.swift](TodoMenu/QuickAddWindowController.swift)
-- [TodoMenu/HotKeyManager.swift](TodoMenu/HotKeyManager.swift)
-- [TodoMenu/TodoModels.swift](TodoMenu/TodoModels.swift)
-- [TodoMenuTests/TodoMenuTests.swift](TodoMenuTests/TodoMenuTests.swift)
+- macOS 14.0+
+- Xcode 15.0+
+- Swift 5.9+
 
-## Verification Criteria
+### Build & Run
 
-After making changes, confirm at least the following two items:
+```bash
+# Clone the repo
+git clone https://github.com/mitian233/TodoMenu.git
+cd TodoMenu
 
-1. `xcodebuild build -scheme TodoMenu -destination 'platform=macOS'`
-2. `xcodebuild test -scheme TodoMenu -destination 'platform=macOS' -only-testing:TodoMenuTests`
+# Build from command line
+xcodebuild build -scheme TodoMenu -destination 'platform=macOS'
 
-## Coding Preferences
+# Or open in Xcode
+open TodoMenu.xcodeproj
+# Then press ⌘R to run
+```
 
-- Prefer keeping code short and easy to understand
-- Before adding a new feature, first confirm whether it truly belongs in the MVP
-- For shortcuts, windows, and app launch behavior, prefer the most stable implementation
-- Avoid introducing heavier structures just for local convenience, especially if they make the menu bar tool feel bloated
+### Run Tests
 
-## Notes
+```bash
+xcodebuild test -scheme TodoMenu -destination 'platform=macOS' -only-testing:TodoMenuTests
+```
 
-- The focus of this project is not the number of features, but the low cost of opening the app and the speed of entering tasks.
-- If a change affects the goal of "capture it in one second," adjust the design first instead of continuing to pile on features.
+## Project Structure
+
+```
+TodoMenu/
+├── TodoMenu/                  # Main app source
+│   ├── TodoMenuApp.swift      # App entry point
+│   ├── MenuBarRootView.swift  # Menu bar view
+│   ├── QuickAddWindowController.swift  # Quick input window
+│   ├── HotKeyManager.swift    # Global hotkey management
+│   ├── TodoModels.swift       # Data models
+│   ├── StatusBarController.swift  # Status bar controller
+│   ├── SettingsView.swift     # Settings UI
+│   ├── NotchView.swift        # Notch display
+│   ├── NotchWindow.swift
+│   ├── NotchWindowController.swift
+│   ├── NotchViewModel.swift
+│   ├── NotchTodoView.swift
+│   ├── LaunchAtLoginManager.swift  # Launch at login
+│   ├── DisplayMode.swift      # Display mode
+│   ├── EventMonitor.swift     # Event monitoring
+│   ├── ScrollingNumberView.swift  # Animated counter
+│   └── Ext+NSScreen.swift     # NSScreen extension
+├── TodoMenuTests/             # Unit tests
+├── TodoMenuUITests/           # UI tests
+└── TodoMenu.xcodeproj         # Xcode project
+```
+
+## Tech Stack
+
+- **UI**: SwiftUI + MenuBarExtra
+- **Storage**: UserDefaults (local persistence)
+- **Hotkeys**: Carbon HotKey API
+- **Architecture**: Zero third-party dependencies, Apple frameworks only
+
+## Development Guidelines
+
+1. Speed matters more than features. If a change affects "capture in one second", redesign first
+2. Before adding a feature, confirm it belongs in the MVP
+3. Keep code simple, avoid heavy architecture
+4. For hotkeys, windows, and launch behavior, prefer the most stable implementation
 
 ## Credits
 
-The notch display mode in this project references and adapts code from [NotchDrop](https://github.com/Lakr233/NotchDrop) by [Lakr233](https://github.com/Lakr233). NotchDrop transforms the MacBook notch into a file drop zone, and its notch window architecture — including the mask-based shape drawing, event monitoring, and animation system — served as the foundation for our notch implementation.
+The notch display mode references and adapts code from [NotchDrop](https://github.com/Lakr233/NotchDrop) by [Lakr233](https://github.com/Lakr233). NotchDrop transforms the MacBook notch into a file drop zone, and its notch window architecture — including mask-based shape drawing, event monitoring, and animation system — served as the foundation for our notch implementation.
 
-Special thanks to the NotchDrop project for making its source code publicly available.
+## License
 
-## LICENSE
-
-MIT
+[MIT](LICENSE)
