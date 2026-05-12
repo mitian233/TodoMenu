@@ -1,0 +1,226 @@
+import Foundation
+import Carbon.HIToolbox
+import AppKit
+import Combine
+
+struct KeyboardShortcut: Codable, Equatable {
+    var keyCode: Int
+    var modifiers: Int
+
+    static let defaultShortcut = KeyboardShortcut(keyCode: kVK_Space, modifiers: optionKey)
+    private static let keyCodeDisplayNames: [Int: String] = [
+        kVK_ANSI_A: "A",
+        kVK_ANSI_B: "B",
+        kVK_ANSI_C: "C",
+        kVK_ANSI_D: "D",
+        kVK_ANSI_E: "E",
+        kVK_ANSI_F: "F",
+        kVK_ANSI_G: "G",
+        kVK_ANSI_H: "H",
+        kVK_ANSI_I: "I",
+        kVK_ANSI_J: "J",
+        kVK_ANSI_K: "K",
+        kVK_ANSI_L: "L",
+        kVK_ANSI_M: "M",
+        kVK_ANSI_N: "N",
+        kVK_ANSI_O: "O",
+        kVK_ANSI_P: "P",
+        kVK_ANSI_Q: "Q",
+        kVK_ANSI_R: "R",
+        kVK_ANSI_S: "S",
+        kVK_ANSI_T: "T",
+        kVK_ANSI_U: "U",
+        kVK_ANSI_V: "V",
+        kVK_ANSI_W: "W",
+        kVK_ANSI_X: "X",
+        kVK_ANSI_Y: "Y",
+        kVK_ANSI_Z: "Z",
+        kVK_ANSI_0: "0",
+        kVK_ANSI_1: "1",
+        kVK_ANSI_2: "2",
+        kVK_ANSI_3: "3",
+        kVK_ANSI_4: "4",
+        kVK_ANSI_5: "5",
+        kVK_ANSI_6: "6",
+        kVK_ANSI_7: "7",
+        kVK_ANSI_8: "8",
+        kVK_ANSI_9: "9",
+        kVK_ANSI_Minus: "-",
+        kVK_ANSI_Equal: "=",
+        kVK_ANSI_LeftBracket: "[",
+        kVK_ANSI_RightBracket: "]",
+        kVK_ANSI_Backslash: "\\",
+        kVK_ANSI_Semicolon: ";",
+        kVK_ANSI_Quote: "'",
+        kVK_ANSI_Comma: ",",
+        kVK_ANSI_Period: ".",
+        kVK_ANSI_Slash: "/",
+        kVK_ANSI_Grave: "`",
+        kVK_ANSI_Keypad0: "0",
+        kVK_ANSI_Keypad1: "1",
+        kVK_ANSI_Keypad2: "2",
+        kVK_ANSI_Keypad3: "3",
+        kVK_ANSI_Keypad4: "4",
+        kVK_ANSI_Keypad5: "5",
+        kVK_ANSI_Keypad6: "6",
+        kVK_ANSI_Keypad7: "7",
+        kVK_ANSI_Keypad8: "8",
+        kVK_ANSI_Keypad9: "9",
+        kVK_ANSI_KeypadDecimal: ".",
+        kVK_ANSI_KeypadMultiply: "*",
+        kVK_ANSI_KeypadPlus: "+",
+        kVK_ANSI_KeypadMinus: "-",
+        kVK_ANSI_KeypadDivide: "/",
+        kVK_ANSI_KeypadEquals: "=",
+        kVK_ANSI_KeypadEnter: "↩"
+    ]
+
+    var displayName: String {
+        var parts: [String] = []
+        let flags = nseventModifiers
+
+        if flags.contains(.control) { parts.append("⌃") }
+        if flags.contains(.option) { parts.append("⌥") }
+        if flags.contains(.shift) { parts.append("⇧") }
+        if flags.contains(.command) { parts.append("⌘") }
+
+        parts.append(keyCodeToString(keyCode))
+        return parts.joined()
+    }
+
+    var nseventModifiers: NSEvent.ModifierFlags {
+        var flags = NSEvent.ModifierFlags()
+        if modifiers & Int(controlKey) != 0 { flags.insert(.control) }
+        if modifiers & Int(optionKey) != 0 { flags.insert(.option) }
+        if modifiers & Int(shiftKey) != 0 { flags.insert(.shift) }
+        if modifiers & Int(cmdKey) != 0 { flags.insert(.command) }
+        return flags
+    }
+
+    static func carbonModifiers(from flags: NSEvent.ModifierFlags) -> Int {
+        var carbonFlags = 0
+        if flags.contains(.control) { carbonFlags |= Int(controlKey) }
+        if flags.contains(.option) { carbonFlags |= Int(optionKey) }
+        if flags.contains(.shift) { carbonFlags |= Int(shiftKey) }
+        if flags.contains(.command) { carbonFlags |= Int(cmdKey) }
+        return carbonFlags
+    }
+
+    func normalizedForRegistration() -> KeyboardShortcut {
+        let knownCarbonMask = Int(controlKey | optionKey | shiftKey | cmdKey)
+        let usesOnlyCarbonBits = modifiers & ~knownCarbonMask == 0
+
+        guard !usesOnlyCarbonBits else {
+            return self
+        }
+
+        let flags = NSEvent.ModifierFlags(rawValue: UInt(modifiers))
+            .intersection(.deviceIndependentFlagsMask)
+
+        return KeyboardShortcut(
+            keyCode: keyCode,
+            modifiers: KeyboardShortcut.carbonModifiers(from: flags)
+        )
+    }
+
+    private func keyCodeToString(_ keyCode: Int) -> String {
+        if let displayName = Self.keyCodeDisplayNames[keyCode] {
+            return displayName
+        }
+
+        switch keyCode {
+        case kVK_Space: return "Space"
+        case kVK_Return: return "↩"
+        case kVK_Tab: return "⇥"
+        case kVK_Delete: return "⌫"
+        case kVK_Escape: return "⎋"
+        case kVK_UpArrow: return "↑"
+        case kVK_DownArrow: return "↓"
+        case kVK_LeftArrow: return "←"
+        case kVK_RightArrow: return "→"
+        case kVK_F1: return "F1"
+        case kVK_F2: return "F2"
+        case kVK_F3: return "F3"
+        case kVK_F4: return "F4"
+        case kVK_F5: return "F5"
+        case kVK_F6: return "F6"
+        case kVK_F7: return "F7"
+        case kVK_F8: return "F8"
+        case kVK_F9: return "F9"
+        case kVK_F10: return "F10"
+        case kVK_F11: return "F11"
+        case kVK_F12: return "F12"
+        default:
+            let source = TISCopyCurrentKeyboardInputSource().takeRetainedValue()
+            let layoutDataRef = TISGetInputSourceProperty(source, kTISPropertyUnicodeKeyLayoutData)
+            guard let layoutDataRef else { return "?" }
+            let layoutData = unsafeBitCast(layoutDataRef, to: CFData.self)
+            let layout = unsafeBitCast(CFDataGetBytePtr(layoutData), to: UnsafePointer<UCKeyboardLayout>.self)
+
+            var deadKeyState: UInt32 = 0
+            var length: Int = 0
+            var chars = [UniChar](repeating: 0, count: 4)
+
+            let status = UCKeyTranslate(
+                layout,
+                UInt16(keyCode),
+                UInt16(kUCKeyActionDisplay),
+                0,
+                UInt32(LMGetKbdType()),
+                UInt32(kUCKeyTranslateNoDeadKeysBit),
+                &deadKeyState,
+                chars.count,
+                &length,
+                &chars
+            )
+
+            if status == noErr, length > 0 {
+                return String(utf16CodeUnits: chars, count: length).uppercased()
+            }
+            return "?"
+        }
+    }
+}
+
+@MainActor
+final class HotKeySettingsManager: ObservableObject {
+    static let shared = HotKeySettingsManager()
+
+    private let key = "todoMenu.keyboardShortcut"
+    @Published private(set) var isCapturingShortcut = false
+
+    @Published var shortcut: KeyboardShortcut {
+        didSet { save() }
+    }
+
+    private init() {
+        if let data = UserDefaults.standard.data(forKey: key),
+           let shortcut = try? JSONDecoder().decode(KeyboardShortcut.self, from: data) {
+            self.shortcut = shortcut.normalizedForRegistration()
+        } else {
+            self.shortcut = .defaultShortcut
+        }
+    }
+
+    func setShortcut(_ newShortcut: KeyboardShortcut) {
+        shortcut = newShortcut.normalizedForRegistration()
+    }
+
+    func resetToDefault() {
+        shortcut = .defaultShortcut
+    }
+
+    func beginShortcutCapture() {
+        isCapturingShortcut = true
+    }
+
+    func endShortcutCapture() {
+        isCapturingShortcut = false
+    }
+
+    private func save() {
+        if let data = try? JSONEncoder().encode(shortcut) {
+            UserDefaults.standard.set(data, forKey: key)
+        }
+    }
+}

@@ -1,8 +1,44 @@
 import Foundation
+import AppKit
+import Carbon.HIToolbox
 import Testing
 @testable import TodoMenu
 
 struct TodoMenuTests {
+    @Test
+    func keyboardShortcutConvertsModifierFlagsForRegistration() {
+        let flags: NSEvent.ModifierFlags = [.command, .option, .shift]
+        let carbon = KeyboardShortcut.carbonModifiers(from: flags)
+        let shortcut = KeyboardShortcut(keyCode: kVK_Space, modifiers: carbon)
+
+        #expect(carbon == Int(cmdKey | optionKey | shiftKey))
+        #expect(shortcut.nseventModifiers == flags)
+        #expect(shortcut.displayName == "⌥⇧⌘Space")
+    }
+
+    @Test
+    func keyboardShortcutUsesManualDisplayMappingForLetterKeys() {
+        let shortcut = KeyboardShortcut(
+            keyCode: kVK_ANSI_K,
+            modifiers: Int(cmdKey)
+        )
+
+        #expect(shortcut.displayName == "⌘K")
+    }
+
+    @Test
+    func keyboardShortcutNormalizesOlderModifierEncoding() {
+        let legacyFlags: NSEvent.ModifierFlags = [.command, .control]
+        let legacyShortcut = KeyboardShortcut(
+            keyCode: kVK_Space,
+            modifiers: Int(legacyFlags.rawValue)
+        )
+        let normalized = legacyShortcut.normalizedForRegistration()
+
+        #expect(normalized.modifiers == Int(cmdKey | controlKey))
+        #expect(normalized.nseventModifiers == legacyFlags)
+    }
+
     @MainActor
     @Test
     func addToggleDeleteAndPersist() throws {
