@@ -17,6 +17,16 @@ struct TodoMenuTests {
     }
 
     @Test
+    func keyboardShortcutUsesManualDisplayMappingForLetterKeys() {
+        let shortcut = KeyboardShortcut(
+            keyCode: kVK_ANSI_K,
+            modifiers: Int(cmdKey)
+        )
+
+        #expect(shortcut.displayName == "⌘K")
+    }
+
+    @Test
     func keyboardShortcutNormalizesOlderModifierEncoding() {
         let legacyFlags: NSEvent.ModifierFlags = [.command, .control]
         let legacyShortcut = KeyboardShortcut(
