@@ -1,14 +1,16 @@
 import Carbon.HIToolbox
 import Foundation
+import Combine
 
 final class HotKeyManager {
     var onTrigger: (() -> Void)?
 
     private var hotKeyRef: EventHotKeyRef?
     private var eventHandlerRef: EventHandlerRef?
+    private var cancellables = Set<AnyCancellable>()
 
     func start() {
-        guard eventHandlerRef == nil, hotKeyRef == nil else {
+        guard eventHandlerRef == nil else {
             return
         }
 
@@ -32,10 +34,31 @@ final class HotKeyManager {
             return
         }
 
+        HotKeySettingsManager.shared.$shortcut
+            .combineLatest(HotKeySettingsManager.shared.$isCapturingShortcut)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _, isCapturing in
+                self?.syncHotKeyRegistration(isCapturing: isCapturing)
+            }
+            .store(in: &cancellables)
+    }
+
+    private func syncHotKeyRegistration(isCapturing: Bool) {
+        if isCapturing {
+            unregisterHotKey()
+            return
+        }
+
+        unregisterHotKey()
+        registerHotKey()
+    }
+
+    private func registerHotKey() {
+        let shortcut = HotKeySettingsManager.shared.shortcut
         let hotKeyID = EventHotKeyID(signature: OSType(stringToFourCharCode("TMNU")), id: 1)
         let registerStatus = RegisterEventHotKey(
-            UInt32(kVK_Space),
-            UInt32(optionKey),
+            UInt32(shortcut.keyCode),
+            UInt32(shortcut.modifiers),
             hotKeyID,
             GetEventDispatcherTarget(),
             0,
@@ -47,10 +70,15 @@ final class HotKeyManager {
         }
     }
 
-    deinit {
+    private func unregisterHotKey() {
         if let hotKeyRef {
             UnregisterEventHotKey(hotKeyRef)
+            self.hotKeyRef = nil
         }
+    }
+
+    deinit {
+        unregisterHotKey()
     }
 }
 

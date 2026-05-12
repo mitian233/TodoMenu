@@ -51,9 +51,9 @@ class NotchViewModel: ObservableObject {
     @Published var screenRect: CGRect = .zero
     @Published var spacing: CGFloat = 16
     @Published var notchVisible: Bool = true
-    @Published var hapticFeedback: Bool = true
     @Published var optionKeyPressed: Bool = false
 
+    let notchSettings = NotchSettingsManager.shared
     let hapticSender = PassthroughSubject<Void, Never>()
 
     init() {
@@ -134,7 +134,7 @@ class NotchViewModel: ObservableObject {
         hapticSender
             .throttle(for: .seconds(0.5), scheduler: DispatchQueue.main, latest: false)
             .sink { [weak self] _ in
-                guard self?.hapticFeedback ?? false else { return }
+                guard self?.notchSettings.hapticFeedback ?? false else { return }
                 NSHapticFeedbackManager.defaultPerformer.perform(
                     .levelChange,
                     performanceTime: .now
